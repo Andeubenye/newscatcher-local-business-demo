@@ -1231,6 +1231,24 @@ async function submitNext() {
   }
 }
 
+function rememberCompletedJob(jobId, results) {
+  const businessType = document.getElementById('businessType').value.trim() || 'business';
+  const city = document.getElementById('city').value.trim() || 'city';
+  const country = document.getElementById('country').value.trim() || 'country';
+  const label = `${businessType} - ${city}, ${country}`;
+  const saved = JSON.parse(localStorage.getItem('hyperlocal_saved_jobs') || '[]')
+    .filter(job => job.job_id !== jobId);
+
+  saved.unshift({
+    job_id: jobId,
+    label,
+    count: results.length,
+    saved_at: new Date().toISOString()
+  });
+
+  localStorage.setItem('hyperlocal_saved_jobs', JSON.stringify(saved.slice(0, 3)));
+}
+
 async function fetchResults(jobId) {
   latestCompletedJobId = jobId;
   localStorage.setItem('hyperlocal_last_job_id', jobId);
@@ -1245,6 +1263,7 @@ async function fetchResults(jobId) {
       const dup = allResults.some(e => e.business_name === r.business_name && e.location_details === r.location_details);
       if (!dup) allResults.push(r);
     });
+    rememberCompletedJob(jobId, allResults);
     renderResults();
     geocodeAndPin(data.results || []);
   } catch (err) { console.error(err); }

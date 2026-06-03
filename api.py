@@ -16,6 +16,7 @@ import os
 from typing import Optional
 
 import requests
+from core.email_client import send_digest
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -65,11 +66,6 @@ class MonitorRequest(BaseModel):
     schedule: Optional[str] = "every day at 8 AM UTC"
 
 
-class NotionRequest(BaseModel):
-    results: list
-    query:   str
-
-
 class IntelRequest(BaseModel):
     results:    list
     user_query: Optional[str] = None
@@ -78,6 +74,12 @@ class IntelRequest(BaseModel):
 class ChatRequest(BaseModel):
     results:    list
     user_query: str
+
+
+class EmailResultsRequest(BaseModel):
+    email: str
+    results: list
+    query: Optional[str] = None
 
 
 # ──────────────────────────────────────────────────────────────
@@ -190,6 +192,20 @@ def api_results(job_id: str):
         raise HTTPException(status_code=502, detail=str(e))
 
 
+@app.post("/api/results/{job_id}/email")
+def api_email_results(job_id: str, body: EmailResultsRequest):
+    """Send selected records to the recipient supplied by the dashboard."""
+    if not body.email or "@" not in body.email:
+        raise HTTPException(status_code=400, detail="Enter a valid email recipient.")
+    if not body.results:
+        raise HTTPException(status_code=400, detail="No records selected for email export.")
+
+    ok = send_digest(body.email, body.results, body.query or f"CatchAll job {job_id}")
+    if not ok:
+        raise HTTPException(status_code=503, detail="Email could not be sent. Check Gmail settings.")
+    return {"emailed": True, "recipient": body.email, "count": len(body.results)}
+
+
 # ──────────────────────────────────────────────────────────────
 # Monitor
 # ──────────────────────────────────────────────────────────────
@@ -202,63 +218,6 @@ def api_monitor(body: MonitorRequest):
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
 
-
-# ──────────────────────────────────────────────────────────────
-# Notion export
-# ──────────────────────────────────────────────────────────────
-
-def _build_notion_page(record: dict, db_id: str, query: str) -> dict:
-    """Build a single Notion page payload from a result record."""
-    return {
-        "parent": {"database_id": db_id},
-        "properties": {
-            "Name":     {"title":     [{"text": {"content": record.get("business_name") or "Unknown"}}]},
-            "Type":     {"rich_text": [{"text": {"content": record.get("business_type") or ""}}]},
-            "Location": {"rich_text": [{"text": {"content": record.get("location_details") or ""}}]},
-            "Status":   {"select":    {"name": (record.get("opening_qualifier") or "unknown").replace("_", " ")}},
-            "Date":     {"rich_text": [{"text": {"content": record.get("opening_date") or ""}}]},
-            "Owner":    {"rich_text": [{"text": {"content": record.get("owner_operator") or ""}}]},
-            "Evidence": {"rich_text": [{"text": {"content": record.get("evidence_summary") or ""}}]},
-            "Source":   {"url":       record.get("source_url") or None},
-            "Query":    {"rich_text": [{"text": {"content": query}}]},
-        }
-    }
-
-
-@app.post("/api/notion")
-def api_notion(body: NotionRequest):
-    notion_key = os.environ.get("NOTION_API_KEY", "")
-    db_id = os.environ.get("NOTION_DATABASE_ID", "")
-
-    if not notion_key or not db_id:
-        raise HTTPException(
-            status_code=503,
-            detail="NOTION_API_KEY or NOTION_DATABASE_ID not configured.",
-        )
-
-    headers = {
-        "Authorization":  f"Bearer {notion_key}",
-        "Content-Type":   "application/json",
-        "Notion-Version": "2022-06-28",
-    }
-
-    pushed, errors = 0, []
-
-    for record in body.results:
-        try:
-            page = _build_notion_page(record, db_id, body.query)
-            res = requests.post(
-                "https://api.notion.com/v1/pages",
-                headers=headers, json=page, timeout=10,
-            )
-            if res.ok:
-                pushed += 1
-            else:
-                errors.append(res.json().get("message", "Unknown error"))
-        except Exception as e:
-            errors.append(str(e))
-
-    return {"pushed": pushed, "errors": errors}
 
 
 # ──────────────────────────────────────────────────────────────
