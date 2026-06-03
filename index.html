@@ -522,7 +522,32 @@
       backdrop-filter: blur(8px);
     }
 
-    /* ── TOAST ─────────────────────────────────────────────── */
+    /* ── INLINE MESSAGES ───────────────────────────────────── */
+    .form-message {
+      display: none;
+      margin-top: 12px;
+      padding: 11px 13px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #0D1117;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .form-message.show { display: block; }
+    .form-message.error {
+      border-color: #F8514944;
+      background: #2D1215;
+      color: #FFB4AD;
+    }
+    .form-message.info {
+      border-color: #2F81F744;
+      background: #0B1628;
+      color: var(--text);
+    }
+
+    /* ── TOAST: reserved for side CTA only ─────────────────── */
     .toast {
       position: fixed;
       bottom: 20px; right: 20px;
@@ -1006,6 +1031,7 @@
           <button class="btn btn-primary" id="searchBtn" onclick="startSearch()">Search</button>
           <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
         </div>
+        <div class="form-message" id="formMessage"></div>
         <button class="mobile-demo" onclick="showToast('Book a demo at newscatcherapi.com')">Book a demo</button>
       </div>
 
@@ -1118,7 +1144,7 @@ async function startSearch() {
   const days         = document.getElementById('days').value;
 
   if (!businessType || !city || !country) {
-    showToast('Business type, city, and country are required.');
+    showFormMessage('Business type, city, and country are required.', 'error');
     return;
   }
 
@@ -1131,6 +1157,7 @@ async function startSearch() {
   document.getElementById('queriesSection').style.display  = 'block';
   document.getElementById('resultsSection').style.display  = 'none';
   document.getElementById('warningBar').style.display     = 'none';
+  hideFormMessage();
   document.getElementById('queryList').innerHTML = '';
   document.getElementById('cardList').innerHTML  = '';
   const dashboardCta = document.getElementById('dashboardCta');
@@ -1160,7 +1187,7 @@ async function startSearch() {
     pollJob(data.job_id);
 
   } catch (err) {
-    showToast(`Error: ${err.message}`);
+    showFormMessage(cleanErrorMessage(err.message), 'error');
     setSearching(false);
   }
 }
@@ -1199,7 +1226,7 @@ async function submitNext() {
     updateQueryToRunning(nextQuery, data.job_id);
     pollJob(data.job_id);
   } catch {
-    showToast('One query skipped — concurrency limit.');
+    showFormMessage('CatchAll is still finishing the previous query, so one signal was skipped. Results will continue loading.', 'info');
     submitNext();
   }
 }
@@ -1346,7 +1373,7 @@ function updateQueryToRunning(query, jobId) {
 function openDashboard() {
   const jobId = latestCompletedJobId || localStorage.getItem('hyperlocal_last_job_id');
   if (!jobId) {
-    showToast('Run one successful job first.');
+    showFormMessage('Run one successful job first.', 'info');
     return;
   }
 
@@ -1357,7 +1384,7 @@ function openDashboard() {
 function openConverse() {
   const jobId = latestCompletedJobId || localStorage.getItem('hyperlocal_last_job_id');
   if (!jobId) {
-    showToast('Run one successful job first.');
+    showFormMessage('Run one successful job first.', 'info');
     return;
   }
 
@@ -1374,6 +1401,7 @@ function clearAll() {
   if (pollInterval) clearInterval(pollInterval);
   ['queryList','cardList'].forEach(id => document.getElementById(id).innerHTML = '');
   ['queriesSection','resultsSection','warningBar','dashboardCta'].forEach(id => document.getElementById(id).style.display = 'none');
+  hideFormMessage();
   document.getElementById('emptyState').style.display = 'block';
   setSearching(false);
   map.setView([1.3521, 103.8198], 12);
@@ -1384,6 +1412,27 @@ function setSearching(state) {
   const btn = document.getElementById('searchBtn');
   btn.disabled = state;
   btn.textContent = state ? 'Searching…' : 'Search';
+}
+
+function cleanErrorMessage(msg) {
+  return String(msg || 'Something went wrong.')
+    .replace(/^Error:\s*/i, '')
+    .replace(/\s*\(\d{3}\)\s*/g, '')
+    .replace(/^Search failed$/i, 'Search failed. Please try again in a moment.');
+}
+
+function showFormMessage(msg, type = 'info') {
+  const box = document.getElementById('formMessage');
+  if (!box) return;
+  box.textContent = msg;
+  box.className = `form-message show ${type}`;
+}
+
+function hideFormMessage() {
+  const box = document.getElementById('formMessage');
+  if (!box) return;
+  box.textContent = '';
+  box.className = 'form-message';
 }
 
 function showToast(msg) {
