@@ -1,0 +1,8 @@
+newscatcher-catchall-sdk
+fastapi
+uvicorn
+python-dotenv
+pydantic
+rapidfuzz
+httpx
+requests
