@@ -19,8 +19,8 @@ from rapidfuzz import fuzz
 
 
 # Tunable thresholds for fuzzy matching
-NAME_THRESHOLD     = 85  # business names should match more strictly
-LOCATION_THRESHOLD = 60  # locations vary more in formatting
+NAME_THRESHOLD     = 70  # names vary across punctuation, translations, and aliases
+LOCATION_THRESHOLD = 65  # locations vary across abbreviations and formatting
 
 
 def normalize_record(record: dict) -> dict:
@@ -48,23 +48,26 @@ def normalize_record(record: dict) -> dict:
 
 def deduplicate(records: list) -> list:
     """Remove records where both name and location fuzzy-match a previous entry."""
-    seen, result = [], []
+    seen, seen_urls, result = [], set(), []
 
     for record in records:
         name     = record.get("business_name") or ""
         location = record.get("location_details") or ""
+        source_url = record.get("source_url") or ""
 
         if not name or not location:
             continue
 
-        is_dup = any(
-            fuzz.token_sort_ratio(name, s_name) >= NAME_THRESHOLD
-            and fuzz.token_sort_ratio(location, s_loc) >= LOCATION_THRESHOLD
+        is_dup = bool(source_url and source_url in seen_urls) or any(
+            max(fuzz.token_sort_ratio(name, s_name), fuzz.WRatio(name, s_name)) >= NAME_THRESHOLD
+            and max(fuzz.token_sort_ratio(location, s_loc), fuzz.WRatio(location, s_loc)) >= LOCATION_THRESHOLD
             for s_name, s_loc in seen
         )
 
         if not is_dup:
             seen.append((name, location))
+            if source_url:
+                seen_urls.add(source_url)
             result.append(record)
 
     return result

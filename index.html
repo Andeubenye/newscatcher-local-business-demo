@@ -118,6 +118,25 @@
 
     .nav-demo:hover { background: #2F81F725; }
 
+    .demo-window-note {
+      margin-top: 10px;
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--text-dim);
+    }
+
+    .demo-window-note button {
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .demo-window-note button:hover { text-decoration: underline; }
+
     /* ── WORKSPACE ─────────────────────────────────────────── */
     .workspace {
       display: flex;
@@ -283,6 +302,68 @@
 
     .query-item.running { border-color: #D2992235; background: #D2992208; }
     .query-item.done    { border-color: #3FB95035; background: #3FB95008; }
+    .query-item.failed  { border-color: #F8514944; background: #2D1215; }
+
+    .query-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .query-topline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .query-title {
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .query-state {
+      margin-left: auto;
+      border-radius: 999px;
+      padding: 2px 7px;
+      border: 1px solid var(--border);
+      color: var(--text-faint);
+      font-family: var(--mono);
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+
+    .query-item.running .query-state {
+      border-color: #D2992235;
+      color: var(--amber);
+      background: var(--amber-dim);
+    }
+
+    .query-item.done .query-state {
+      border-color: #3FB95035;
+      color: var(--green);
+      background: var(--green-dim);
+    }
+
+    .query-item.failed .query-state {
+      border-color: #F8514944;
+      color: #FFB4AD;
+      background: #2D1215;
+    }
+
+    .query-raw {
+      margin-top: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text-faint);
+    }
 
     .query-dot {
       width: 6px; height: 6px;
@@ -447,7 +528,8 @@
 
     .dashboard-cta button {
       width: 100%;
-      padding: 8px 10px;
+      min-height: 40px;
+      padding: 9px 10px;
       border-radius: 6px;
       border: 1px solid #2F81F730;
       background: var(--accent);
@@ -458,14 +540,28 @@
       cursor: pointer;
     }
 
+    .dashboard-cta button + button {
+      margin-top: 8px;
+    }
+
+    .dashboard-cta .converse-cta {
+      background: #0D1117;
+      color: var(--accent);
+      border-color: #2F81F755;
+    }
+
+    .dashboard-cta .converse-cta:hover {
+      background: #2F81F718;
+    }
+
     /* ── WARNING BAR ───────────────────────────────────────── */
     .warning-bar {
-      background: var(--amber-dim);
-      border: 1px solid #D2992235;
+      background: #2D1215;
+      border: 1px solid #F8514944;
       border-radius: 6px;
       padding: 9px 12px;
       font-size: 11px;
-      color: var(--amber);
+      color: #FFB4AD;
       margin-bottom: 6px;
       display: none;
       line-height: 1.5;
@@ -545,6 +641,113 @@
       border-color: #2F81F744;
       background: #0B1628;
       color: var(--text);
+    }
+
+    .search-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+      padding: 11px 13px;
+      border: 1px solid #2F81F730;
+      background: #2F81F710;
+      border-radius: 10px;
+      color: var(--text);
+    }
+
+    .search-status.hidden { display: none; }
+
+    .pulse-orb {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 0 rgba(47,129,247,.45);
+      animation: pulse 1.4s infinite;
+      flex-shrink: 0;
+    }
+
+    .search-status strong {
+      display: block;
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .search-status span {
+      display: block;
+      margin-top: 3px;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(47,129,247,.45); transform: scale(1); }
+      70% { box-shadow: 0 0 0 10px rgba(47,129,247,0); transform: scale(1.08); }
+      100% { box-shadow: 0 0 0 0 rgba(47,129,247,0); transform: scale(1); }
+    }
+
+    .email-modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      background: rgba(0,0,0,0.58);
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .email-modal-backdrop.show { display: flex; }
+
+    .email-modal {
+      width: min(420px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.42);
+    }
+
+    .email-modal-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 7px;
+    }
+
+    .email-modal-copy {
+      color: var(--text-dim);
+      font-size: 12px;
+      line-height: 1.6;
+      margin-bottom: 13px;
+    }
+
+    .email-modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .email-modal-actions button {
+      flex: 1;
+      min-height: 38px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-family: var(--sans);
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .email-modal-send {
+      background: var(--green-dim);
+      color: var(--green);
+      border-color: #3FB95030 !important;
+    }
+
+    .email-modal-skip {
+      background: transparent;
+      color: var(--text-dim);
     }
 
     /* ── TOAST: reserved for side CTA only ─────────────────── */
@@ -981,7 +1184,7 @@
   <div class="nav-item" title="Converse" onclick="openConverse()">💬</div>
 
   <div class="nav-spacer"></div>
-  <div class="nav-demo" onclick="showToast('Book a demo at newscatcherapi.com')">
+  <div class="nav-demo" onclick="showToast('Need a wider search window? Book a demo at newscatcherapi.com')">
     Book a demo
   </div>
 </div>
@@ -1020,19 +1223,41 @@
           <div class="field">
             <label>Days back</label>
             <select id="days">
+              <option value="1">1 day</option>
+              <option value="2">2 days</option>
+              <option value="3">3 days</option>
+              <option value="4">4 days</option>
+              <option value="5">5 days</option>
+              <option value="6">6 days</option>
               <option value="7">7 days</option>
+              <option value="8">8 days</option>
+              <option value="9">9 days</option>
+              <option value="10">10 days</option>
+              <option value="11">11 days</option>
+              <option value="12">12 days</option>
+              <option value="13">13 days</option>
               <option value="14" selected>14 days</option>
-              <option value="21">21 days</option>
-              <option value="30">30 days</option>
             </select>
           </div>
         </div>
         <div class="btn-row">
           <button class="btn btn-primary" id="searchBtn" onclick="startSearch()">Search</button>
           <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+          <button class="btn btn-ghost" onclick="resetDemo()">Reset</button>
+        </div>
+        <div id="searchStatus" class="search-status hidden">
+          <div class="pulse-orb"></div>
+          <div>
+            <strong id="statusTitle">Searching the open web...</strong>
+            <span id="statusSub">Finding opening signals from local sources.</span>
+          </div>
         </div>
         <div class="form-message" id="formMessage"></div>
-        <button class="mobile-demo" onclick="showToast('Book a demo at newscatcherapi.com')">Book a demo</button>
+        <div class="demo-window-note">
+          This demo searches sources from the past 14 days.
+          <button onclick="showToast('Need a wider search window? Book a demo at newscatcherapi.com')">Need a wider window? Book a demo</button>
+        </div>
+        <button class="mobile-demo" onclick="showToast('Need a wider search window? Book a demo at newscatcherapi.com')">Need a wider window? Book a demo</button>
       </div>
 
       <div class="warning-bar" id="warningBar"></div>
@@ -1040,7 +1265,7 @@
 
     <div class="panel-scroll">
       <div id="queriesSection" style="display:none">
-        <div class="section-label">Queries → CatchAll</div>
+        <div class="section-label">Opening signals</div>
         <div id="queryList"></div>
       </div>
 
@@ -1080,12 +1305,37 @@
 
 </div>
 
+<div class="email-modal-backdrop" id="emailModal">
+  <div class="email-modal">
+    <div class="email-modal-title">Want the results emailed when this finishes?</div>
+    <div class="email-modal-copy">Keep this tab open and we’ll email the dataset when the job finishes.</div>
+    <input id="waitingEmail" type="email" placeholder="you@example.com">
+    <div class="email-modal-actions">
+      <button class="email-modal-skip" onclick="closeEmailPrompt()">Skip</button>
+      <button class="email-modal-send" onclick="saveWaitingEmail()">Email me</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-let map, markers = [], allResults = [], pollInterval = null;
-let searching = false, remainingQueries = [], latestCompletedJobId = null;
+let map, markers = [], allResults = [], pollInterval = null, emailPromptTimer = null;
+let searching = false, remainingQueries = [], latestCompletedJobId = null, waitingEmail = "";
+let currentSearchPlace = { street: '', city: 'Singapore', country: 'Singapore' };
+let currentRunningJobId = null, currentDatasetId = null, statusInterval = null;
+
+const SEARCH_STATUS = {
+  submitting: ['Starting search...', 'Submitting opening-signal queries to CatchAll.'],
+  searching: ['Searching CatchAll...', 'Jobs often take 10-15 minutes. Results appear as each signal completes.'],
+  pulling: ['Pulling completed records...', 'Fetching returned records from CatchAll.'],
+  next: ['Checking the next signal...', 'Running another opening phrase to improve recall.'],
+  enriching: ['Enriching returned records...', 'CatchAll is structuring locations, dates, source links, and business details.'],
+  streaming: ['Adding records to the dataset...', 'Showing records as CatchAll makes them available.'],
+  ready: ['Dataset ready.', 'Records are ready for the dashboard, chat, email, and CSV export.'],
+  waiting: ['Still searching...', 'CatchAll jobs can take 10-15 minutes. Results appear as each signal completes.']
+};
 
 map = L.map('map', {
   zoomControl: true,
@@ -1135,6 +1385,7 @@ const pinIcon = L.divIcon({
 });
 
 async function startSearch() {
+  localStorage.removeItem('hyperlocal_email_prompt_dismissed');
   if (searching) return;
 
   const businessType = document.getElementById('businessType').value.trim();
@@ -1151,6 +1402,10 @@ async function startSearch() {
   clearMarkers();
   allResults = [];
   remainingQueries = [];
+  latestCompletedJobId = null;
+  currentDatasetId = `dataset-${crypto.randomUUID()}`;
+  localStorage.removeItem('hyperlocal_last_job_id');
+  currentSearchPlace = { street, city, country };
   if (pollInterval) clearInterval(pollInterval);
 
   document.getElementById('emptyState').style.display     = 'none';
@@ -1160,10 +1415,11 @@ async function startSearch() {
   hideFormMessage();
   document.getElementById('queryList').innerHTML = '';
   document.getElementById('cardList').innerHTML  = '';
-  const dashboardCta = document.getElementById('dashboardCta');
-  if (dashboardCta) dashboardCta.style.display = 'none';
+  hideDashboardCta();
 
   setSearching(true);
+  startStatusMessages('submitting');
+  zoomToSearchPlace(currentSearchPlace);
 
   try {
     const res = await fetch('/api/search', {
@@ -1182,39 +1438,75 @@ async function startSearch() {
     }
 
     remainingQueries = data.remaining || [];
+    saveActiveSearch({
+      form: { businessType, city, country, street, days },
+      place: currentSearchPlace,
+      current_job_id: data.job_id,
+      dataset_id: currentDatasetId,
+      current_query: data.query,
+      remaining: remainingQueries,
+      queries: [
+        { query: data.query, job_id: data.job_id, state: 'running' },
+        ...remainingQueries.map(query => ({ query, job_id: null, state: 'pending' }))
+      ],
+      waiting_email: waitingEmail
+    });
+    scheduleEmailPrompt();
     addQueryItem(data.query, data.job_id, 'running');
     remainingQueries.forEach(q => addQueryItem(q, null, 'pending'));
     pollJob(data.job_id);
 
   } catch (err) {
     showFormMessage(cleanErrorMessage(err.message), 'error');
+    clearActiveSearch();
     setSearching(false);
   }
 }
 
 function pollJob(jobId) {
   if (pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(async () => {
-    try {
-      const res    = await fetch(`/api/status/${jobId}`);
-      const status = (await res.json()).status;
-      updateQueryDot(jobId, status);
-      if (status === 'completed') {
-        clearInterval(pollInterval);
-        await fetchResults(jobId);
-        submitNext();
-      } else if (status === 'failed') {
-        clearInterval(pollInterval);
-        updateQueryDot(jobId, 'failed');
-        submitNext();
-      }
-    } catch { clearInterval(pollInterval); }
-  }, 15000);
+  currentRunningJobId = jobId;
+  setSearchStatus('searching');
+  checkJobStatus(jobId);
+  pollInterval = setInterval(() => checkJobStatus(jobId), 10000);
 }
 
-async function submitNext() {
-  if (remainingQueries.length === 0) { setSearching(false); return; }
-  const nextQuery = remainingQueries.shift();
+async function checkJobStatus(jobId) {
+  try {
+    const res = await fetch(`/api/status/${jobId}`);
+    const status = (await res.json()).status;
+    updateQueryDot(jobId, status);
+    updateActiveQuery(jobId, status === 'completed' ? 'done' : status === 'failed' ? 'failed' : 'running');
+
+    if (status === 'completed') {
+      clearInterval(pollInterval);
+      setSearchStatus('pulling');
+      await fetchResults(jobId);
+      submitNext();
+    } else if (status === 'enriching') {
+      setSearchStatus('enriching');
+      await fetchResults(jobId, { partial: true });
+    } else if (status === 'failed') {
+      clearInterval(pollInterval);
+      updateQueryDot(jobId, 'failed');
+      submitNext();
+    }
+  } catch {
+    showFormMessage('Still waiting for the job status. The search may still be running in the background.', 'info');
+  }
+}
+
+async function submitNext(retryCount = 0) {
+  if (remainingQueries.length === 0) {
+    clearActiveSearch();
+    setSearchStatus('ready');
+    setSearching(false);
+    if (allResults.length) setDashboardCta('ready');
+    hideFormMessage();
+    return;
+  }
+  const nextQuery = remainingQueries[0];
+  setSearchStatus('next');
   try {
     const res  = await fetch('/api/next', {
       method: 'POST',
@@ -1223,50 +1515,182 @@ async function submitNext() {
     });
     if (!res.ok) throw new Error();
     const data = await res.json();
+    remainingQueries.shift();
     updateQueryToRunning(nextQuery, data.job_id);
+    saveActiveSearch({
+      current_job_id: data.job_id,
+      current_query: nextQuery,
+      remaining: remainingQueries,
+      queries: getActiveQueries().map(item =>
+        item.query === nextQuery ? { ...item, job_id: data.job_id, state: 'running' } : item
+      )
+    });
     pollJob(data.job_id);
   } catch {
-    showFormMessage('CatchAll is still finishing the previous query, so one signal was skipped. Results will continue loading.', 'info');
-    submitNext();
+    showFormMessage('CatchAll is finishing the previous signal. The next signal will start automatically.', 'info');
+    saveActiveSearch({ remaining: remainingQueries });
+    setTimeout(() => submitNext(retryCount + 1), Math.min(5000 + retryCount * 1000, 15000));
   }
 }
 
-function rememberCompletedJob(jobId, results) {
+function rememberCompletedDataset(datasetId, results) {
   const businessType = document.getElementById('businessType').value.trim() || 'business';
   const city = document.getElementById('city').value.trim() || 'city';
   const country = document.getElementById('country').value.trim() || 'country';
   const label = `${businessType} - ${city}, ${country}`;
   const saved = JSON.parse(localStorage.getItem('hyperlocal_saved_jobs') || '[]')
-    .filter(job => job.job_id !== jobId);
+    .filter(job => job.job_id !== datasetId);
 
+  const compactResults = results.map(({ citations, ...record }) => record);
   saved.unshift({
-    job_id: jobId,
+    job_id: datasetId,
     label,
-    count: results.length,
-    saved_at: new Date().toISOString()
+    count: compactResults.length,
+    results: compactResults,
+    saved_at: new Date().toISOString(),
+    place: { city, country, street: document.getElementById('street').value.trim() }
   });
 
-  localStorage.setItem('hyperlocal_saved_jobs', JSON.stringify(saved.slice(0, 3)));
+  localStorage.setItem('hyperlocal_saved_jobs', JSON.stringify(saved.slice(0, 20)));
 }
 
-async function fetchResults(jobId) {
-  latestCompletedJobId = jobId;
-  localStorage.setItem('hyperlocal_last_job_id', jobId);
+async function mergeAndDeduplicate(records) {
+  const combined = [...allResults, ...records].filter(record => record && record.business_name);
+  try {
+    const res = await fetch('/api/deduplicate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ results: combined })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      allResults = data.results || [];
+      return;
+    }
+  } catch (err) {
+    console.warn('Could not run cross-signal deduplication', err);
+  }
+
+  const seen = new Set();
+  allResults = combined.filter(record => {
+    const key = `${record.business_name || ''}|${record.location_details || ''}`.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function setDashboardCta(mode = 'ready') {
   const cta = document.getElementById('dashboardCta');
-  if (cta) cta.style.display = 'block';
+  if (!cta) return;
+
+  const title = cta.querySelector('.dashboard-cta-title');
+  const copy = cta.querySelector('.dashboard-cta-copy');
+  if (mode === 'partial') {
+    if (title) title.textContent = 'Results so far';
+    if (copy) copy.textContent = 'Open the dashboard with current records while the remaining opening signals keep running.';
+  } else {
+    if (title) title.textContent = 'Dataset ready';
+    if (copy) copy.textContent = 'Turn the completed job into structured intel, or ask questions over the returned records.';
+  }
+  cta.style.display = 'block';
+}
+
+function hideDashboardCta() {
+  const cta = document.getElementById('dashboardCta');
+  if (cta) cta.style.display = 'none';
+}
+
+async function fetchResults(jobId, options = {}) {
+  const partial = Boolean(options.partial);
+  setSearchStatus('enriching');
 
   try {
     const res  = await fetch(`/api/results/${jobId}`);
     const data = await res.json();
-    (data.results || []).forEach(r => {
-      if (!r.business_name) return;
-      const dup = allResults.some(e => e.business_name === r.business_name && e.location_details === r.location_details);
-      if (!dup) allResults.push(r);
-    });
-    rememberCompletedJob(jobId, allResults);
+    await mergeAndDeduplicate(data.results || []);
+    if (!allResults.length && partial) return;
+
+    if (!partial) {
+      latestCompletedJobId = currentDatasetId;
+      localStorage.setItem('hyperlocal_last_job_id', currentDatasetId);
+      rememberCompletedDataset(currentDatasetId, allResults);
+      await sendWaitingEmailIfNeeded(jobId, allResults);
+      if (allResults.length) setDashboardCta(remainingQueries.length ? 'partial' : 'ready');
+    }
+
     renderResults();
+    const stillRunningSignals = partial || remainingQueries.length > 0;
+    setSearchStatus(
+      stillRunningSignals ? 'streaming' : 'ready',
+      stillRunningSignals
+        ? `${allResults.length} record${allResults.length !== 1 ? 's' : ''} found so far. More opening signals are still running.`
+        : `${allResults.length} record${allResults.length !== 1 ? 's' : ''} ready for review.`
+    );
     geocodeAndPin(data.results || []);
   } catch (err) { console.error(err); }
+}
+
+function getActiveSearch() {
+  try {
+    return JSON.parse(localStorage.getItem('hyperlocal_active_search') || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function getActiveQueries() {
+  return (getActiveSearch() || {}).queries || [];
+}
+
+function saveActiveSearch(patch = {}) {
+  const current = getActiveSearch() || {};
+  localStorage.setItem('hyperlocal_active_search', JSON.stringify({
+    ...current,
+    ...patch,
+    updated_at: new Date().toISOString()
+  }));
+}
+
+function clearActiveSearch() {
+  localStorage.removeItem('hyperlocal_active_search');
+  currentRunningJobId = null;
+}
+
+function updateActiveQuery(jobId, state) {
+  const active = getActiveSearch();
+  if (!active || !jobId) return;
+  saveActiveSearch({
+    queries: (active.queries || []).map(item =>
+      item.job_id === jobId ? { ...item, state } : item
+    )
+  });
+}
+
+function startStatusMessages(stage = 'submitting') {
+  if (statusInterval) clearInterval(statusInterval);
+  setSearchStatus(stage);
+  const box = document.getElementById('searchStatus');
+  if (box) box.classList.remove('hidden');
+  statusInterval = setInterval(() => {
+    if (!searching) return;
+    setSearchStatus('waiting');
+  }, 30000);
+}
+
+function stopStatusMessages() {
+  if (statusInterval) clearInterval(statusInterval);
+  statusInterval = null;
+  const box = document.getElementById('searchStatus');
+  if (box) box.classList.add('hidden');
+}
+
+function setSearchStatus(stage, customSub = null) {
+  const title = document.getElementById('statusTitle');
+  const sub = document.getElementById('statusSub');
+  const message = SEARCH_STATUS[stage] || SEARCH_STATUS.searching;
+  if (title) title.textContent = message[0];
+  if (sub) sub.textContent = customSub || message[1];
 }
 
 function renderResults() {
@@ -1320,7 +1744,10 @@ async function geocodeAndPin(records) {
   for (const r of records) {
     if (!r.location_details) continue;
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(r.location_details)}&format=json&limit=1`);
+      const query = [r.location_details, currentSearchPlace.city, currentSearchPlace.country]
+        .filter(Boolean)
+        .join(', ');
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`);
       const geo = await res.json();
       if (geo.length > 0) {
         const idx    = allResults.findIndex(e => e.business_name === r.business_name);
@@ -1340,18 +1767,133 @@ async function geocodeAndPin(records) {
     await new Promise(r => setTimeout(r, 500));
   }
   if (markers.length > 0) {
-    try { map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2)); } catch {}
+    try {
+      if (markers.length === 1) {
+        map.setView(markers[0].getLatLng(), 13);
+      } else {
+        map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2), { maxZoom: 14 });
+      }
+    } catch {}
   }
+}
+
+async function zoomToSearchPlace(place = currentSearchPlace) {
+  if (!map) return;
+  const query = [place.street, place.city, place.country].filter(Boolean).join(', ');
+  if (!query) return;
+
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`);
+    const geo = await res.json();
+    if (!geo.length) return;
+
+    const lat = parseFloat(geo[0].lat);
+    const lon = parseFloat(geo[0].lon);
+    const zoom = place.street ? 14 : place.city ? 12 : 6;
+    map.setView([lat, lon], zoom);
+  } catch (err) {
+    console.warn('Could not zoom to search place', err);
+  }
+}
+
+async function restoreLastCompletedJob() {
+  const jobId = localStorage.getItem('hyperlocal_last_job_id');
+  if (!jobId || searching || allResults.length) return;
+
+  const savedJobs = JSON.parse(localStorage.getItem('hyperlocal_saved_jobs') || '[]');
+  const savedJob = savedJobs.find(job => job.job_id === jobId);
+  if (savedJob && savedJob.place) {
+    currentSearchPlace = {
+      street: savedJob.place.street || '',
+      city: savedJob.place.city || currentSearchPlace.city,
+      country: savedJob.place.country || currentSearchPlace.country
+    };
+  }
+
+  try {
+    if (savedJob && Array.isArray(savedJob.results)) {
+      allResults = savedJob.results.filter(r => r.business_name);
+      if (!allResults.length) return;
+      currentDatasetId = jobId;
+      latestCompletedJobId = jobId;
+      setDashboardCta('ready');
+      document.getElementById('emptyState').style.display = 'none';
+      renderResults();
+      zoomToSearchPlace(currentSearchPlace);
+      geocodeAndPin(allResults);
+      return;
+    }
+
+    const res = await fetch(`/api/results/${encodeURIComponent(jobId)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    allResults = (data.results || []).filter(r => r.business_name);
+    if (!allResults.length) return;
+
+    latestCompletedJobId = jobId;
+    const cta = document.getElementById('dashboardCta');
+    if (cta) cta.style.display = 'block';
+    document.getElementById('emptyState').style.display = 'none';
+    renderResults();
+    zoomToSearchPlace(currentSearchPlace);
+    geocodeAndPin(allResults);
+  } catch (err) {
+    console.warn('Could not restore last completed job', err);
+  }
+}
+
+async function restoreActiveSearch() {
+  const active = getActiveSearch();
+  if (!active || !active.current_job_id) return false;
+  currentDatasetId = active.dataset_id || `dataset-${crypto.randomUUID()}`;
+  saveActiveSearch({ dataset_id: currentDatasetId });
+
+  const form = active.form || {};
+  if (form.businessType) document.getElementById('businessType').value = form.businessType;
+  if (form.city) document.getElementById('city').value = form.city;
+  if (form.country) document.getElementById('country').value = form.country;
+  if (form.street !== undefined) document.getElementById('street').value = form.street;
+  if (form.days) document.getElementById('days').value = form.days;
+
+  currentSearchPlace = active.place || {
+    street: form.street || '',
+    city: form.city || 'Singapore',
+    country: form.country || 'Singapore'
+  };
+  remainingQueries = active.remaining || [];
+  waitingEmail = active.waiting_email || waitingEmail;
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('queriesSection').style.display = 'block';
+  document.getElementById('resultsSection').style.display = 'none';
+  const cta = document.getElementById('dashboardCta');
+  if (cta) cta.style.display = 'none';
+  document.getElementById('queryList').innerHTML = '';
+  (active.queries || []).forEach(item => addQueryItem(item.query, item.job_id, item.state || 'pending'));
+
+  setSearching(true);
+  startStatusMessages('searching');
+  zoomToSearchPlace(currentSearchPlace);
+  scheduleEmailPrompt();
+  pollJob(active.current_job_id);
+  return true;
 }
 
 function addQueryItem(query, jobId, state) {
   const item = document.createElement('div');
-  item.className = `query-item ${state === 'running' ? 'running' : ''}`;
+  const normalizedState = normalizeQueryState(state);
+  item.className = `query-item ${normalizedState}`;
   item.id = `qi-${jobId || encodeURIComponent(query)}`;
   item.dataset.query = query;
   item.innerHTML = `
-    <div class="query-dot ${state === 'running' ? 'running' : ''}" id="dot-${jobId || encodeURIComponent(query)}"></div>
-    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${query}</span>
+    <div class="query-dot ${normalizedState}" id="dot-${jobId || encodeURIComponent(query)}"></div>
+    <div class="query-main">
+      <div class="query-topline">
+        <span class="query-title">${signalLabel(query)}</span>
+        <span class="query-state">${queryStateLabel(normalizedState)}</span>
+      </div>
+      <div class="query-raw">${query}</div>
+    </div>
   `;
   document.getElementById('queryList').appendChild(item);
 }
@@ -1360,8 +1902,11 @@ function updateQueryDot(jobId, status) {
   const dot  = document.getElementById(`dot-${jobId}`);
   const item = document.getElementById(`qi-${jobId}`);
   if (!dot || !item) return;
-  dot.className  = `query-dot ${status === 'completed' ? 'done' : status === 'failed' ? 'failed' : 'running'}`;
-  item.className = `query-item ${status === 'completed' ? 'done' : status === 'failed' ? '' : 'running'}`;
+  const normalizedState = normalizeQueryState(status);
+  dot.className  = `query-dot ${normalizedState}`;
+  item.className = `query-item ${normalizedState}`;
+  const label = item.querySelector('.query-state');
+  if (label) label.textContent = queryStateLabel(normalizedState);
 }
 
 function updateQueryToRunning(query, jobId) {
@@ -1371,8 +1916,39 @@ function updateQueryToRunning(query, jobId) {
       item.className = 'query-item running';
       const dot = item.querySelector('.query-dot');
       if (dot) { dot.id = `dot-${jobId}`; dot.className = 'query-dot running'; }
+      const label = item.querySelector('.query-state');
+      if (label) label.textContent = 'Searching';
     }
   });
+}
+
+function normalizeQueryState(state) {
+  if (state === 'completed' || state === 'done') return 'done';
+  if (state === 'failed') return 'failed';
+  if (state === 'running' || state === 'submitted' || state === 'enriching' || state === 'pulling') return 'running';
+  return 'pending';
+}
+
+function queryStateLabel(state) {
+  return {
+    pending: 'Queued',
+    running: 'Searching',
+    done: 'Complete',
+    failed: 'Skipped'
+  }[state] || 'Queued';
+}
+
+function signalLabel(query) {
+  const value = String(query || '').toLowerCase();
+  const isCombinedOpeningSearch =
+    value.includes('grand opening') &&
+    (value.includes('now open') || value.includes('now-open')) &&
+    value.includes('soft opening');
+  if (isCombinedOpeningSearch) return 'Opening-intel search';
+  if (value.includes('grand opening')) return 'Grand opening signal';
+  if (value.includes('now open')) return 'Now open signal';
+  if (value.includes('soft opening')) return 'Soft opening signal';
+  return 'Opening-intel search';
 }
 
 
@@ -1416,8 +1992,10 @@ function clearMarkers() { markers.forEach(m => map.removeLayer(m)); markers = []
 
 function clearAll() {
   clearMarkers();
-  allResults = []; remainingQueries = []; latestCompletedJobId = null; latestCompletedJobId = null;
+  allResults = []; remainingQueries = []; latestCompletedJobId = null; currentDatasetId = null; waitingEmail = "";
   if (pollInterval) clearInterval(pollInterval);
+  if (emailPromptTimer) clearTimeout(emailPromptTimer);
+  clearActiveSearch();
   ['queryList','cardList'].forEach(id => document.getElementById(id).innerHTML = '');
   ['queriesSection','resultsSection','warningBar','dashboardCta'].forEach(id => document.getElementById(id).style.display = 'none');
   hideFormMessage();
@@ -1426,11 +2004,68 @@ function clearAll() {
   map.setView([1.3521, 103.8198], 12);
 }
 
+function resetDemo() {
+  clearAll();
+  localStorage.removeItem('hyperlocal_active_search');
+  localStorage.removeItem('hyperlocal_last_job_id');
+  localStorage.removeItem('hyperlocal_saved_jobs');
+  localStorage.removeItem('hyperlocal_email_prompt_dismissed');
+  hideFormMessage();
+  showFormMessage('Demo reset. Start a fresh search when ready.', 'info');
+}
+
 function setSearching(state) {
   searching = state;
   const btn = document.getElementById('searchBtn');
   btn.disabled = state;
   btn.textContent = state ? 'Searching…' : 'Search';
+  if (!state) stopStatusMessages();
+}
+
+function maybeShowEmailPrompt() {
+  if (waitingEmail) return;
+  const modal = document.getElementById('emailModal');
+  if (modal) modal.classList.add('show');
+}
+
+function scheduleEmailPrompt() {
+  if (waitingEmail || emailPromptTimer) return;
+  emailPromptTimer = setTimeout(() => {
+    emailPromptTimer = null;
+    if (searching) maybeShowEmailPrompt();
+  }, 12000);
+}
+
+function closeEmailPrompt() {
+  const modal = document.getElementById('emailModal');
+  if (modal) modal.classList.remove('show');
+}
+
+function saveWaitingEmail() {
+  const input = document.getElementById('waitingEmail');
+  const email = input ? input.value.trim() : '';
+  if (!email || !email.includes('@')) {
+    showFormMessage('Enter a valid email address.', 'error');
+    return;
+  }
+  waitingEmail = email;
+  saveActiveSearch({ waiting_email: waitingEmail });
+  closeEmailPrompt();
+  showFormMessage(`Got it. Keep this tab open and we’ll email ${email} when the dataset finishes.`, 'info');
+}
+
+async function sendWaitingEmailIfNeeded(jobId, results) {
+  if (!waitingEmail || !results.length) return;
+  try {
+    const res = await fetch(`/api/results/${encodeURIComponent(jobId)}/email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: waitingEmail, results, query: 'Completed CatchAll opening records' })
+    });
+    if (res.ok) showFormMessage(`Dataset emailed to ${waitingEmail}.`, 'info');
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 function cleanErrorMessage(msg) {
@@ -1472,6 +2107,10 @@ window.addEventListener('orientationchange', () => {
 });
 
 window.addEventListener('load', refreshMapSize);
+window.addEventListener('load', async () => {
+  const restoredActive = await restoreActiveSearch();
+  if (!restoredActive) restoreLastCompletedJob();
+});
 
 document.addEventListener('keydown', e => { if (e.key === 'Enter') startSearch(); });
 </script>

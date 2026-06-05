@@ -3,10 +3,9 @@ api.py — Hyperlocal Business Intel — Demo Backend
 
 FastAPI app exposing CatchAll-powered routes for the demo frontend.
 
-Sequential job design: one CatchAll job at a time to respect the
-plan's concurrency limit of 1. The frontend submits the first query
-via /api/search, then chains subsequent queries via /api/next after
-each job completes. Results render progressively.
+Three-signal design: run grand-opening, now-open, and soft-opening searches
+sequentially so the demo favors recall while staying inside one active job.
+Results can render progressively once CatchAll reaches the enriching stage.
 
 Start:
     uvicorn api:app --reload --port 8000 (or available port)
@@ -40,9 +39,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Signal terms run sequentially to broaden recall while respecting concurrency
-SIGNAL_TERMS = ["grand opening", "now open", "soft opening"]
 DEFAULT_JOB_LIMIT = 50
+PLAN_LOOKBACK_DAYS = 14
+SIGNAL_TERMS = ("grand opening", "now open", "soft opening")
 
 
 # ──────────────────────────────────────────────────────────────
@@ -71,6 +70,10 @@ class IntelRequest(BaseModel):
     user_query: Optional[str] = None
 
 
+class DatasetRequest(BaseModel):
+    results: list
+
+
 class ChatRequest(BaseModel):
     results:    list
     user_query: str
@@ -94,19 +97,16 @@ def _build_location(street: str, city: str, country: str) -> str:
 
 
 def _build_queries(business_type: str, location: str, days: int) -> list:
-    """Build one query per signal term."""
+    """Build separate opening-signal queries for stronger recall."""
     return [
         f"{signal} {business_type} {location} last {days} days"
         for signal in SIGNAL_TERMS
     ]
 
 
-def _extract_date_warning(preview: dict) -> Optional[str]:
-    """Pull the first date modification message from a preview response."""
-    msgs = preview.get("date_modification_message")
-    if not msgs:
-        return None
-    return msgs[0] if isinstance(msgs, list) else msgs
+def _extract_date_warning(preview: dict, requested_days: int) -> Optional[str]:
+    """Suppress CatchAll date-modification text; the UI explains the demo window."""
+    return None
 
 
 # ──────────────────────────────────────────────────────────────
@@ -118,7 +118,7 @@ def serve_index():
     return FileResponse("index.html")
 
 
-@app.get("/dashboard", include_in_schema=False)
+@app.get("/dashboard.html", include_in_schema=False)
 def serve_dashboard():
     return FileResponse("dashboard.html")
 
@@ -133,18 +133,18 @@ def health():
 
 
 # ──────────────────────────────────────────────────────────────
-# Search flow — sequential job submission
+# Search flow
 # ──────────────────────────────────────────────────────────────
 
 @app.post("/api/search")
 def api_search(body: SearchRequest):
-    """Submit the FIRST signal-term job. Return job_id + remaining queries."""
+    """Submit the first opening-signal CatchAll job."""
     location = _build_location(body.street, body.city, body.country)
     queries = _build_queries(body.business_type, location, body.days)
 
     try:
         preview = initialize(query=queries[0])
-        date_warning = _extract_date_warning(preview)
+        date_warning = _extract_date_warning(preview, body.days)
         job_id = submit(query=queries[0], limit=DEFAULT_JOB_LIMIT)
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
@@ -192,6 +192,13 @@ def api_results(job_id: str):
         raise HTTPException(status_code=502, detail=str(e))
 
 
+@app.post("/api/deduplicate")
+def api_deduplicate(body: DatasetRequest):
+    """Deduplicate the combined records returned by all search-signal jobs."""
+    results = deduplicate(body.results)
+    return {"total": len(results), "results": results}
+
+
 @app.post("/api/results/{job_id}/email")
 def api_email_results(job_id: str, body: EmailResultsRequest):
     """Send selected records to the recipient supplied by the dashboard."""
@@ -227,10 +234,12 @@ def api_monitor(body: MonitorRequest):
 @app.post("/api/intel")
 async def api_intel(body: IntelRequest):
     openrouter_key = os.environ.get("OPENROUTER_API_KEY")
+    openrouter_model = os.environ.get("OPENROUTER_MODEL", "google/gemini-2.5-flash")
     return await build_opening_intel_with_ai(
         body.results,
         user_query=body.user_query or None,
         openrouter_api_key=openrouter_key,
+        model=openrouter_model,
     )
 
 
@@ -238,10 +247,12 @@ async def api_intel(body: IntelRequest):
 async def api_chat(body: ChatRequest):
     """Chat with the dataset. Falls back to deterministic readout without OpenRouter."""
     openrouter_key = os.environ.get("OPENROUTER_API_KEY")
+    openrouter_model = os.environ.get("OPENROUTER_MODEL", "google/gemini-2.5-flash")
     return await chat_with_opening_records(
         body.results,
         body.user_query,
         openrouter_api_key=openrouter_key,
+        model=openrouter_model,
     )
 
 

@@ -342,7 +342,7 @@ async def generate_ai_readout(
     *,
     user_query: Optional[str] = None,
     openrouter_api_key: Optional[str] = None,
-    model: str = "google/gemini-flash-1.5",
+    model: str = "google/gemini-2.5-flash",
     site_url: str = "http://localhost",
     app_name: str = "Hyperlocal Business Intel",
 ) -> str:
@@ -403,14 +403,19 @@ async def generate_ai_readout(
         "X-Title": app_name,
     }
 
-    async with httpx.AsyncClient(timeout=30) as client:
-        response = await client.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers=headers,
-            json=payload,
-        )
-        response.raise_for_status()
-        data = response.json()
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers=headers,
+                json=payload,
+            )
+            response.raise_for_status()
+            data = response.json()
+    except httpx.HTTPStatusError as exc:
+        return intel.readout
+    except httpx.HTTPError as exc:
+        return intel.readout
 
     message = (
         data.get("choices", [{}])[0]
@@ -427,7 +432,7 @@ async def build_opening_intel_with_ai(
     *,
     user_query: Optional[str] = None,
     openrouter_api_key: Optional[str] = None,
-    model: str = "google/gemini-flash-1.5",
+    model: str = "google/gemini-2.5-flash",
 ) -> Dict[str, Any]:
     """
     Convenience function for FastAPI routes.
@@ -530,7 +535,7 @@ async def chat_with_opening_records(
     user_query: str,
     *,
     openrouter_api_key: Optional[str] = None,
-    model: str = "google/gemini-flash-1.5",
+    model: str = "google/gemini-2.5-flash",
     site_url: str = "http://localhost",
     app_name: str = "Hyperlocal Business Intel",
     record_limit: int = 40,
@@ -601,14 +606,28 @@ async def chat_with_opening_records(
         "X-Title": app_name,
     }
 
-    async with httpx.AsyncClient(timeout=30) as client:
-        response = await client.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers=headers,
-            json=payload,
-        )
-        response.raise_for_status()
-        data = response.json()
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers=headers,
+                json=payload,
+            )
+            response.raise_for_status()
+            data = response.json()
+    except httpx.HTTPStatusError as exc:
+        detail = _clean(exc.response.text)[:220]
+        return {
+            "answer": intel.readout,
+            "used_llm": False,
+            "warning": f"OpenRouter returned {exc.response.status_code}. Showing the deterministic dataset readout instead. {detail}",
+        }
+    except httpx.HTTPError as exc:
+        return {
+            "answer": intel.readout,
+            "used_llm": False,
+            "warning": f"OpenRouter could not be reached. Showing the deterministic dataset readout instead. {_clean(exc)}",
+        }
 
     answer = (
         data.get("choices", [{}])[0]
